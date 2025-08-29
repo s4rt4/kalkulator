@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator Serbaguna</title>
+<style>
+  /* ====== Base ====== */
+  :root{
+    --bg:#f0f0f0; --card:#fff; --text:#333; --muted:#666; --brand:#007bff; --brand-dark:#0056b3;
+    --shadow:0 2px 5px rgba(0,0,0,.1);
+  }
+  *{box-sizing:border-box}
+  body{font-family:Arial, sans-serif; padding:20px; background:var(--bg); color:var(--text)}
+  h1{text-align:center; margin-bottom:30px}
+  h2{text-align:center; margin-bottom:15px}
+
+  /* Cards & grid */
+  .grid{display:grid; grid-template-columns:1fr; gap:20px}
+  @media (min-width:768px){ .grid{grid-template-columns:repeat(2,1fr)} }
+  .container{background:var(--card); padding:20px; border-radius:8px; box-shadow:var(--shadow)}
+  .result{margin-top:15px; font-weight:bold; text-align:center}
+
+  /* Form controls */
+  input, select, button{width:100%; padding:10px; margin:8px 0; border-radius:4px; border:1px solid #ccc}
+  /* batasi input agar tak "nempel" sisi card */
+  .container input, .container select, .container button{width:90%; margin-left:auto; margin-right:auto; display:block}
+
+  /* Buttons */
+  button{background:var(--brand); color:#fff; border:none; border-radius:6px; font-size:14px; font-weight:700; cursor:pointer; transition:background .2s}
+  button:hover{background:var(--brand-dark)}
+
+  /* Toggle theme (kecil & bundar) */
+  #toggleTheme{cursor:pointer; background:var(--brand); color:#fff; border:none; font-size:16px; padding:6px 10px; width:auto; border-radius:50%}
+
+  /* Navbar */
+  #navbar{
+    display:flex; flex-direction:column; align-items:flex-end;
+    background:#fff; padding:10px 20px; position:sticky; top:0; z-index:999;
+    box-shadow:var(--shadow); border-radius:8px; margin-bottom:20px;
+  }
+  .nav-header{width:100%; display:flex; justify-content:flex-end; align-items:center}
+  .hamburger{display:none; font-size:22px; cursor:pointer; background:none; border:none; color:var(--brand)}
+  .nav-links{display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:10px}
+  .nav-links a{
+    text-decoration:none; color:var(--brand); font-size:14px; padding:6px 10px; border-radius:4px; transition:background .2s, color .2s
+  }
+  .nav-links a:hover{background:var(--brand); color:#fff}
+
+  /* Mobile menu */
+  @media (max-width:768px){
+    .hamburger{display:block}
+    .nav-links{display:none; flex-direction:column; width:100%; text-align:center}
+    .nav-links.show{display:flex}
+    .nav-links a{margin:10px 0}
+  }
+
+  /* Tutorial link */
+  .tutorial-container{text-align:center}
+  .tutorial-btn{
+    display:inline-block; background:var(--brand); color:#fff; padding:10px 20px; margin:15px auto;
+    border-radius:6px; text-decoration:none; font-weight:700; font-size:14px; transition:background .2s
+  }
+  .tutorial-btn:hover{background:var(--brand-dark)}
+
+  /* Footer */
+  footer{text-align:center; padding:15px; margin-top:30px; background:#f9f9f9; font-size:14px; border-radius:8px}
+  footer a{color:var(--text); margin:0 4px}
+
+  /* Dark mode */
+  body.dark{background:#1e1e1e; color:#f0f0f0}
+  body.dark .container, body.dark #navbar, body.dark footer{background:#2a2a2a; color:#f0f0f0}
+  body.dark a{color:#ddd}
+  body.dark .nav-links a{color:#fff}
+  body.dark .nav-links a:hover{background:var(--brand); color:#fff}
+  body.dark #toggleTheme{color:#fff}
+
+  /* Animations (single source of truth) */
+  @keyframes flash{0%{box-shadow:0 0 20px 5px rgba(0,123,255,.95)}100%{box-shadow:none}}
+  @keyframes popupShake{
+    0%{transform:scale(.95) rotate(0)}20%{transform:scale(1.05) rotate(1deg)}
+    40%{transform:scale(1.02) rotate(-1deg)}60%{transform:scale(1.05) rotate(1deg)}
+    80%{transform:scale(1.02) rotate(-1deg)}100%{transform:scale(1) rotate(0)}
+  }
+  .highlight{animation:flash 1.5s ease}
+  .card-animate{animation:popupShake .6s ease, flash 1.5s ease; animation-fill-mode:both}
+  @media (prefers-reduced-motion:reduce){
+    .highlight, .card-animate{animation:none}
+    *{scroll-behavior:auto}
+  }
+</style>
+
+</head>
+<body>
+
+    <!-- Navbar -->
+<nav id="navbar">
+  <div class="nav-header">
+    <button class="hamburger" onclick="toggleMenu()">☰ Menu</button>
+  </div>
+  <div class="nav-links">
+    <a href="#cardVolume">Volume</a>
+    <a href="#cardLuasRuang">Luas Ruang</a>
+    <a href="#cardKeliling">Keliling</a>
+    <a href="#cardLuasDatar">Luas Datar</a>
+    <a href="#cardBerat">Berat</a>
+    <a href="#cardJarak">Jarak</a>
+    <a href="#cardSuhu">Suhu</a>
+    <a href="#cardUang">Mata Uang</a>
+    <a href="#cardPythagoras">Pythagoras</a>
+    <a href="#cardPersen">Persentase</a>
+    <a href="#cardPecahan">Pecahan</a>
+    <a href="#cardSkala">Skala</a>
+    <a href="#cardWaktu">Waktu</a>
+    <a href="#cardSpeed">Kecepatan</a>
+    <a href="#cardDiskon">Diskon</a>
+    <a href="#cardCicilan">Cicilan</a>
+       <button id="toggleTheme">Pilih Tema</button>
+  </div>
+  
+</nav>
+
+
+<h1>Kalkulator Serbaguna</h1>
+<div class="tutorial-container">
+  <a href="tutorial.html" class="tutorial-btn">Lihat Tutorial Penggunaan</a>
+</div>
+
+<div class="grid">
+    <!-- Volume -->
+    <div class="container" id="cardVolume">
+        <h2>Volume Bangun Ruang</h2>
+        <select id="shapeVolume">
+            <option value="">--Pilih--</option>
+            <option value="kubus">Kubus</option>
+            <option value="balok">Balok</option>
+            <option value="tabung">Tabung</option>
+            <option value="kerucut">Kerucut</option>
+            <option value="bola">Bola</option>
+            <option value="prismaSegitiga">Prisma Segitiga</option>
+        </select>
+        <div id="inputsVolume"></div>
+        <button onclick="calculateVolume()">Hitung Volume</button>
+        <div class="result" id="resultVolume"></div>
+    </div>
+
+    <!-- Luas Permukaan -->
+    <div class="container" id="cardLuasRuang">
+        <h2>Luas Permukaan Bangun Ruang</h2>
+        <select id="shapeLuasRuang">
+            <option value="">--Pilih--</option>
+            <option value="kubus">Kubus</option>
+            <option value="balok">Balok</option>
+            <option value="tabung">Tabung</option>
+            <option value="kerucut">Kerucut</option>
+            <option value="bola">Bola</option>
+            <option value="prismaSegitiga">Prisma Segitiga</option>
+        </select>
+        <div id="inputsLuasRuang"></div>
+        <button onclick="calculateLuasRuang()">Hitung Luas</button>
+        <div class="result" id="resultLuasRuang"></div>
+    </div>
+
+    <!-- Keliling Bangun Datar -->
+    <div class="container" id="cardKeliling">
+        <h2>Keliling Bangun Datar</h2>
+        <select id="shapeKeliling">
+            <option value="">--Pilih--</option>
+            <option value="persegi">Persegi</option>
+            <option value="persegiPanjang">Persegi Panjang</option>
+            <option value="segitiga">Segitiga</option>
+            <option value="lingkaran">Lingkaran</option>
+            <option value="jajarGenjang">Jajar Genjang</option>
+            <option value="trapesium">Trapesium</option>
+            <option value="belahKetupat">Belah Ketupat</option>
+            <option value="layang">Layang-layang</option>
+        </select>
+        <div id="inputsKeliling"></div>
+        <button onclick="calculateKeliling()">Hitung Keliling</button>
+        <div class="result" id="resultKeliling"></div>
+    </div>
+
+    <!-- Luas Bangun Datar -->
+    <div class="container" id="cardLuasDatar">
+        <h2>Luas Bangun Datar</h2>
+        <select id="shapeLuasDatar">
+            <option value="">--Pilih--</option>
+            <option value="persegi">Persegi</option>
+            <option value="persegiPanjang">Persegi Panjang</option>
+            <option value="segitiga">Segitiga</option>
+            <option value="lingkaran">Lingkaran</option>
+            <option value="jajarGenjang">Jajar Genjang</option>
+            <option value="trapesium">Trapesium</option>
+            <option value="belahKetupat">Belah Ketupat</option>
+            <option value="layang">Layang-layang</option>
+        </select>
+        <div id="inputsLuasDatar"></div>
+        <button onclick="calculateLuasDatar()">Hitung Luas</button>
+        <div class="result" id="resultLuasDatar"></div>
+    </div>
+    <!-- Konversi Berat -->
+    <div class="container" id="cardBerat">
+        <h2>Konversi Berat</h2>
+        <input type="number" id="inputBerat" placeholder="Masukkan nilai">
+        <select id="fromBerat">
+            <option value="kg">Kilogram</option>
+            <option value="g">Gram</option>
+            <option value="mg">Miligram</option>
+            <option value="lb">Pound (lb)</option>
+            <option value="oz">Ons (oz)</option>
+        </select>
+        <select id="toBerat">
+            <option value="kg">Kilogram</option>
+            <option value="g">Gram</option>
+            <option value="mg">Miligram</option>
+            <option value="lb">Pound (lb)</option>
+            <option value="oz">Ons (oz)</option>
+        </select>
+        <button onclick="convertBerat()">Konversi</button>
+        <div class="result" id="resultBerat"></div>
+    </div>
+
+    <!-- Konversi Jarak -->
+    <div class="container" id="cardJarak">
+        <h2>Konversi Jarak</h2>
+        <input type="number" id="inputJarak" placeholder="Masukkan nilai">
+        <select id="fromJarak">
+            <option value="km">Kilometer</option>
+            <option value="m">Meter</option>
+            <option value="cm">Centimeter</option>
+            <option value="mm">Milimeter</option>
+            <option value="mile">Mil</option>
+            <option value="yard">Yard</option>
+            <option value="ft">Feet</option>
+        </select>
+        <select id="toJarak">
+            <option value="km">Kilometer</option>
+            <option value="m">Meter</option>
+            <option value="cm">Centimeter</option>
+            <option value="mm">Milimeter</option>
+            <option value="mile">Mil</option>
+            <option value="yard">Yard</option>
+            <option value="ft">Feet</option>
+        </select>
+        <button onclick="convertJarak()">Konversi</button>
+        <div class="result" id="resultJarak"></div>
+    </div>
+
+    <!-- Konversi Suhu -->
+    <div class="container" id="cardSuhu">
+        <h2>Konversi Suhu</h2>
+        <input type="number" id="inputSuhu" placeholder="Masukkan nilai">
+        <select id="fromSuhu">
+            <option value="C">Celsius</option>
+            <option value="F">Fahrenheit</option>
+            <option value="K">Kelvin</option>
+        </select>
+        <select id="toSuhu">
+            <option value="C">Celsius</option>
+            <option value="F">Fahrenheit</option>
+            <option value="K">Kelvin</option>
+        </select>
+        <button onclick="convertSuhu()">Konversi</button>
+        <div class="result" id="resultSuhu"></div>
+    </div>
+
+        <!-- Konversi Mata Uang -->
+    <div class="container" id="cardUang">
+        <h2>Konversi Mata Uang</h2>
+        <input type="number" id="inputUang" placeholder="Masukkan nilai">
+        <select id="fromUang">
+            <option value="USD">USD</option>
+            <option value="IDR">IDR</option>
+            <option value="EUR">EUR</option>
+            <option value="JPY">JPY</option>
+        </select>
+        <select id="toUang">
+            <option value="USD">USD</option>
+            <option value="IDR">IDR</option>
+            <option value="EUR">EUR</option>
+            <option value="JPY">JPY</option>
+        </select>
+        <button onclick="convertUang()">Konversi</button>
+        <div class="result" id="resultUang"></div>
+
+        <h3 style="margin-top:15px;font-size:16px;">Kurs Statis</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+            <tr><th style="border:1px solid #ccc;padding:5px;">Mata Uang</th><th style="border:1px solid #ccc;padding:5px;">Nilai terhadap 1 USD</th></tr>
+            <tr><td style="border:1px solid #ccc;padding:5px;">IDR</td><td style="border:1px solid #ccc;padding:5px;">16,000</td></tr>
+            <tr><td style="border:1px solid #ccc;padding:5px;">EUR</td><td style="border:1px solid #ccc;padding:5px;">0.92</td></tr>
+            <tr><td style="border:1px solid #ccc;padding:5px;">JPY</td><td style="border:1px solid #ccc;padding:5px;">145</td></tr>
+        </table>
+        <p style="font-size:12px;text-align:center;color:#666;margin-top:5px;">(Nilai kurs ini statis, hanya contoh)</p>
+    </div>
+    <!-- Pythagoras -->
+    <div class="container" id="cardPythagoras">
+        <h2>Kalkulator Pythagoras</h2>
+        <input type="number" id="aPyt" placeholder="Sisi a">
+        <input type="number" id="bPyt" placeholder="Sisi b">
+        <button onclick="calcPythagoras()">Hitung Sisi Miring</button>
+        <div class="result" id="resultPyt"></div>
+    </div>
+
+    <!-- Persentase -->
+    <div class="container" id="cardPersen">
+        <h2>Kalkulator Persentase</h2>
+        <input type="number" id="nilaiPersen" placeholder="Nilai">
+        <input type="number" id="persen" placeholder="Persentase (%)">
+        <button onclick="calcPersen()">Hitung</button>
+        <div class="result" id="resultPersen"></div>
+    </div>
+
+    <!-- Pecahan -->
+    <div class="container" id="cardPecahan">
+        <h2>Kalkulator Pecahan</h2>
+        <input type="number" id="numPecahan" placeholder="Pembilang">
+        <input type="number" id="denPecahan" placeholder="Penyebut">
+        <button onclick="calcPecahan()">Ubah ke Desimal</button>
+        <div class="result" id="resultPecahan"></div>
+    </div>
+
+    <!-- Skala & Perbandingan -->
+    <div class="container" id="cardSkala">
+        <h2>Skala & Perbandingan</h2>
+        <input type="number" id="jarakPeta" placeholder="Jarak di peta (cm)">
+        <input type="number" id="skala" placeholder="Skala (misal 1000)">
+        <button onclick="calcSkala()">Hitung Jarak Sebenarnya</button>
+        <div class="result" id="resultSkala"></div>
+    </div>
+
+    <!-- Konversi Waktu -->
+    <div class="container" id="cardWaktu">
+        <h2>Konversi Waktu</h2>
+        <input type="number" id="inputWaktu" placeholder="Nilai dalam detik">
+        <button onclick="convertWaktu()">Konversi</button>
+        <div class="result" id="resultWaktu"></div>
+    </div>
+
+    <!-- Kecepatan -->
+    <div class="container" id="cardSpeed">
+        <h2>Konversi Kecepatan</h2>
+        <input type="number" id="inputKecepatan" placeholder="Nilai">
+        <select id="fromSpeed">
+            <option value="kmh">km/jam</option>
+            <option value="ms">m/s</option>
+            <option value="mph">mil/jam</option>
+        </select>
+        <select id="toSpeed">
+            <option value="kmh">km/jam</option>
+            <option value="ms">m/s</option>
+            <option value="mph">mil/jam</option>
+        </select>
+        <button onclick="convertKecepatan()">Konversi</button>
+        <div class="result" id="resultKecepatan"></div>
+    </div>
+
+    <!-- Kalkulator Diskon -->
+    <div class="container" id="cardDiskon">
+        <h2>Kalkulator Diskon</h2>
+        <input type="number" id="hargaAwal" placeholder="Harga Awal">
+        <input type="number" id="diskonPersen" placeholder="Diskon (%)">
+        <button onclick="calcDiskon()">Hitung Harga Akhir</button>
+        <div class="result" id="resultDiskon"></div>
+    </div>
+
+    <!-- Kalkulator Cicilan -->
+    <div class="container" id="cardCicilan">
+        <h2>Kalkulator Cicilan</h2>
+        <input type="number" id="pinjaman" placeholder="Total Pinjaman">
+        <input type="number" id="bunga" placeholder="Bunga per bulan (%)">
+        <input type="number" id="bulan" placeholder="Lama cicilan (bulan)">
+        <button onclick="calcCicilan()">Hitung Angsuran</button>
+        <div class="result" id="resultCicilan"></div>
+    </div>
+
+</div>
+
+    <!-- Footer -->
+<footer>
+  <div class="footer-links">
+    <a href="#cardVolume">Volume</a> | 
+    <a href="#cardLuasRuang">Luas Ruang</a> | 
+    <a href="#cardKeliling">Keliling</a> | 
+    <a href="#cardLuasDatar">Luas Datar</a> | 
+    <a href="#cardBerat">Berat</a> | 
+    <a href="#cardJarak">Jarak</a> | 
+    <a href="#cardSuhu">Suhu</a> | 
+    <a href="#cardUang">Mata Uang</a> | 
+    <a href="#cardPythagoras">Pythagoras</a> | 
+    <a href="#cardPersen">Persentase</a> | 
+    <a href="#cardPecahan">Pecahan</a> | 
+    <a href="#cardSkala">Skala</a> | 
+    <a href="#cardWaktu">Waktu</a> | 
+    <a href="#cardSpeed">Kecepatan</a> | 
+    <a href="#cardDiskon">Diskon</a> | 
+    <a href="#cardCicilan">Cicilan</a>
+  </div>
+  <p style="margin-top:10px; font-size:13px; color:#666;">
+    © 2025 Sarta. All rights reserved.
+  </p>
+</footer>
+
+<script>
+function createInput(id,label,grp){
+    return `<label>${label}:</label><input type="number" id="${id+grp}" placeholder="${label}">`;
+}
+
+/* ========== VOLUME ========= */
+document.getElementById('shapeVolume').addEventListener('change',function(){
+    let s=this.value,h='';
+    if(s==='kubus')h=createInput('sisi','Sisi','Vol');
+    else if(s==='balok')h=createInput('panjang','Panjang','Vol')+createInput('lebar','Lebar','Vol')+createInput('tinggi','Tinggi','Vol');
+    else if(s==='tabung')h=createInput('jari','Jari-jari','Vol')+createInput('tinggi','Tinggi','Vol');
+    else if(s==='kerucut')h=createInput('jari','Jari-jari','Vol')+createInput('tinggi','Tinggi','Vol');
+    else if(s==='bola')h=createInput('jari','Jari-jari','Vol');
+    else if(s==='prismaSegitiga')h=createInput('alas','Alas Segitiga','Vol')+createInput('tinggiSegitiga','Tinggi Segitiga','Vol')+createInput('tinggiPrisma','Tinggi Prisma','Vol');
+    document.getElementById('inputsVolume').innerHTML=h;
+});
+function calculateVolume(){
+    const s=document.getElementById('shapeVolume').value;let V=0;
+    if(s==='kubus'){let a=+sisiVol.value;V=a**3;}
+    else if(s==='balok'){V=+panjangVol.value*+lebarVol.value*+tinggiVol.value;}
+    else if(s==='tabung'){V=Math.PI*(+jariVol.value)**2*+tinggiVol.value;}
+    else if(s==='kerucut'){V=(1/3)*Math.PI*(+jariVol.value)**2*+tinggiVol.value;}
+    else if(s==='bola'){V=(4/3)*Math.PI*(+jariVol.value)**3;}
+    else if(s==='prismaSegitiga'){V=0.5*+alasVol.value*+tinggiSegitigaVol.value*+tinggiPrismaVol.value;}
+    resultVolume.innerText="Volume: "+V.toFixed(2);
+}
+
+/* ========== LUAS PERMUKAAN RUANG ========= */
+document.getElementById('shapeLuasRuang').addEventListener('change',function(){
+    let s=this.value,h='';
+    if(s==='kubus')h=createInput('sisi','Sisi','LR');
+    else if(s==='balok')h=createInput('panjang','Panjang','LR')+createInput('lebar','Lebar','LR')+createInput('tinggi','Tinggi','LR');
+    else if(s==='tabung')h=createInput('jari','Jari-jari','LR')+createInput('tinggi','Tinggi','LR');
+    else if(s==='kerucut')h=createInput('jari','Jari-jari','LR')+createInput('selimut','Garis Pelukis','LR');
+    else if(s==='bola')h=createInput('jari','Jari-jari','LR');
+    else if(s==='prismaSegitiga')h=createInput('alas','Alas Segitiga','LR')+createInput('tinggiSegitiga','Tinggi Segitiga','LR')+createInput('tinggiPrisma','Tinggi Prisma','LR');
+    inputsLuasRuang.innerHTML=h;
+});
+function calculateLuasRuang(){
+    let s=shapeLuasRuang.value,L=0;
+    if(s==='kubus'){L=6*(+sisiLR.value)**2;}
+    else if(s==='balok'){let p=+panjangLR.value,l=+lebarLR.value,t=+tinggiLR.value;L=2*(p*l+p*t+l*t);}
+    else if(s==='tabung'){let r=+jariLR.value,t=+tinggiLR.value;L=2*Math.PI*r*(r+t);}
+    else if(s==='kerucut'){L=Math.PI*+jariLR.value*(+jariLR.value+ +selimutLR.value);}
+    else if(s==='bola'){L=4*Math.PI*(+jariLR.value)**2;}
+    else if(s==='prismaSegitiga'){let a=+alasLR.value,ts=+tinggiSegitigaLR.value,tp=+tinggiPrismaLR.value;let alas=0.5*a*ts;let kel=a+ts+Math.sqrt(a**2+ts**2);L=2*alas+kel*tp;}
+    resultLuasRuang.innerText="Luas: "+L.toFixed(2);
+}
+
+/* ========== KELILING DATAR ========= */
+document.getElementById('shapeKeliling').addEventListener('change',function(){
+    let s=this.value,h='';
+    if(s==='persegi')h=createInput('sisi','Sisi','Kel');
+    else if(s==='persegiPanjang')h=createInput('panjang','Panjang','Kel')+createInput('lebar','Lebar','Kel');
+    else if(s==='segitiga')h=createInput('a','Sisi a','Kel')+createInput('b','Sisi b','Kel')+createInput('c','Sisi c','Kel');
+    else if(s==='lingkaran')h=createInput('jari','Jari-jari','Kel');
+    else if(s==='jajarGenjang')h=createInput('a','Alas','Kel')+createInput('b','Sisi Miring','Kel');
+    else if(s==='trapesium')h=createInput('a','Sisi a','Kel')+createInput('b','Sisi b','Kel')+createInput('c','Sisi c','Kel')+createInput('d','Sisi d','Kel');
+    else if(s==='belahKetupat'||s==='layang')h=createInput('a','Sisi','Kel')+createInput('b','Sisi lain','Kel');
+    inputsKeliling.innerHTML=h;
+});
+function calculateKeliling(){
+    let s=shapeKeliling.value,K=0;
+    if(s==='persegi')K=4*+sisiKel.value;
+    else if(s==='persegiPanjang')K=2*(+panjangKel.value+ +lebarKel.value);
+    else if(s==='segitiga')K=+aKel.value+ +bKel.value+ +cKel.value;
+    else if(s==='lingkaran')K=2*Math.PI*+jariKel.value;
+    else if(s==='jajarGenjang')K=2*(+aKel.value+ +bKel.value);
+    else if(s==='trapesium')K=+aKel.value+ +bKel.value+ +cKel.value+ +dKel.value;
+    else if(s==='belahKetupat'||s==='layang')K=2*(+aKel.value+ +bKel.value);
+    resultKeliling.innerText="Keliling: "+K.toFixed(2);
+}
+
+/* ========== LUAS DATAR ========= */
+document.getElementById('shapeLuasDatar').addEventListener('change',function(){
+    let s=this.value,h='';
+    if(s==='persegi')h=createInput('sisi','Sisi','LD');
+    else if(s==='persegiPanjang')h=createInput('panjang','Panjang','LD')+createInput('lebar','Lebar','LD');
+    else if(s==='segitiga')h=createInput('alas','Alas','LD')+createInput('tinggi','Tinggi','LD');
+    else if(s==='lingkaran')h=createInput('jari','Jari-jari','LD');
+    else if(s==='jajarGenjang')h=createInput('alas','Alas','LD')+createInput('tinggi','Tinggi','LD');
+    else if(s==='trapesium')h=createInput('a','Sisi a','LD')+createInput('b','Sisi b','LD')+createInput('tinggi','Tinggi','LD');
+    else if(s==='belahKetupat'||s==='layang')h=createInput('d1','Diagonal 1','LD')+createInput('d2','Diagonal 2','LD');
+    inputsLuasDatar.innerHTML=h;
+});
+function calculateLuasDatar(){
+    let s=shapeLuasDatar.value,L=0;
+    if(s==='persegi')L=(+sisiLD.value)**2;
+    else if(s==='persegiPanjang')L=+panjangLD.value*+lebarLD.value;
+    else if(s==='segitiga')L=0.5*+alasLD.value*+tinggiLD.value;
+    else if(s==='lingkaran')L=Math.PI*(+jariLD.value)**2;
+    else if(s==='jajarGenjang')L=+alasLD.value*+tinggiLD.value;
+    else if(s==='trapesium')L=0.5*(+aLD.value+ +bLD.value)*+tinggiLD.value;
+    else if(s==='belahKetupat'||s==='layang')L=0.5*+d1LD.value*+d2LD.value;
+    resultLuasDatar.innerText="Luas: "+L.toFixed(2);
+}
+
+/* ===== KONVERSI BERAT ===== */
+function convertBerat(){
+    let val = parseFloat(document.getElementById('inputBerat').value);
+    let from = document.getElementById('fromBerat').value;
+    let to = document.getElementById('toBerat').value;
+    if(isNaN(val)) { resultBerat.innerText="Masukkan nilai valid"; return; }
+
+    // semua ke gram
+    let gram;
+    switch(from){
+        case "kg": gram = val*1000; break;
+        case "g": gram = val; break;
+        case "mg": gram = val/1000; break;
+        case "lb": gram = val*453.592; break;
+        case "oz": gram = val*28.3495; break;
+    }
+
+    // gram ke target
+    let result;
+    switch(to){
+        case "kg": result = gram/1000; break;
+        case "g": result = gram; break;
+        case "mg": result = gram*1000; break;
+        case "lb": result = gram/453.592; break;
+        case "oz": result = gram/28.3495; break;
+    }
+
+    resultBerat.innerText = `${val} ${from} = ${result.toFixed(4)} ${to}`;
+}
+
+/* ===== KONVERSI JARAK ===== */
+function convertJarak(){
+    let val = parseFloat(document.getElementById('inputJarak').value);
+    let from = document.getElementById('fromJarak').value;
+    let to = document.getElementById('toJarak').value;
+    if(isNaN(val)) { resultJarak.innerText="Masukkan nilai valid"; return; }
+
+    // semua ke meter
+    let meter;
+    switch(from){
+        case "km": meter = val*1000; break;
+        case "m": meter = val; break;
+        case "cm": meter = val/100; break;
+        case "mm": meter = val/1000; break;
+        case "mile": meter = val*1609.34; break;
+        case "yard": meter = val*0.9144; break;
+        case "ft": meter = val*0.3048; break;
+    }
+
+    // meter ke target
+    let result;
+    switch(to){
+        case "km": result = meter/1000; break;
+        case "m": result = meter; break;
+        case "cm": result = meter*100; break;
+        case "mm": result = meter*1000; break;
+        case "mile": result = meter/1609.34; break;
+        case "yard": result = meter/0.9144; break;
+        case "ft": result = meter/0.3048; break;
+    }
+
+    resultJarak.innerText = `${val} ${from} = ${result.toFixed(4)} ${to}`;
+}
+/* ===== KONVERSI SUHU ===== */
+function convertSuhu(){
+    let val = parseFloat(document.getElementById('inputSuhu').value);
+    let from = document.getElementById('fromSuhu').value;
+    let to = document.getElementById('toSuhu').value;
+    if(isNaN(val)) { resultSuhu.innerText="Masukkan nilai valid"; return; }
+
+    let C; // semua ke Celsius
+    if(from==="C") C=val;
+    else if(from==="F") C=(val-32)*5/9;
+    else if(from==="K") C=val-273.15;
+
+    let result;
+    if(to==="C") result=C;
+    else if(to==="F") result=(C*9/5)+32;
+    else if(to==="K") result=C+273.15;
+
+    resultSuhu.innerText=`${val}°${from} = ${result.toFixed(2)}°${to}`;
+}
+
+/* ===== KONVERSI MATA UANG ===== */
+// Kurs contoh (statik, bisa diupdate manual)
+const rates = {
+    "USD": 1,
+    "IDR": 16000,
+    "EUR": 0.92,
+    "JPY": 145
+};
+
+function convertUang(){
+    let val = parseFloat(document.getElementById('inputUang').value);
+    let from = document.getElementById('fromUang').value;
+    let to = document.getElementById('toUang').value;
+    if(isNaN(val)) { resultUang.innerText="Masukkan nilai valid"; return; }
+
+    let usd = val / rates[from];     // konversi ke USD
+    let result = usd * rates[to];    // konversi ke target
+
+    resultUang.innerText = `${val} ${from} = ${result.toFixed(2)} ${to}`;
+}
+
+/* ==== PYTHAGORAS ==== */
+function calcPythagoras(){
+    let a=+document.getElementById('aPyt').value;
+    let b=+document.getElementById('bPyt').value;
+    if(isNaN(a)||isNaN(b)) { resultPyt.innerText="Masukkan sisi valid"; return; }
+    let c=Math.sqrt(a*a+b*b);
+    resultPyt.innerText=`Sisi miring = ${c.toFixed(2)}`;
+}
+
+/* ==== PERSENTASE ==== */
+function calcPersen(){
+    let n=+nilaiPersen.value;
+    let p=+persen.value;
+    if(isNaN(n)||isNaN(p)){resultPersen.innerText="Masukkan nilai";return;}
+    let hasil=n*p/100;
+    resultPersen.innerText=`${p}% dari ${n} = ${hasil}`;
+}
+
+/* ==== PECAHAN ==== */
+function calcPecahan(){
+    let num=+numPecahan.value;
+    let den=+denPecahan.value;
+    if(den===0){resultPecahan.innerText="Penyebut tidak boleh 0";return;}
+    let dec=num/den;
+    resultPecahan.innerText=`${num}/${den} = ${dec.toFixed(4)}`;
+}
+
+/* ==== SKALA ==== */
+function calcSkala(){
+    let jp=+jarakPeta.value;
+    let s=+skala.value;
+    if(isNaN(jp)||isNaN(s)||s<=0){resultSkala.innerText="Input salah";return;}
+    let jarak=jp*s; // cm
+    resultSkala.innerText=`Jarak sebenarnya = ${(jarak/100000).toFixed(2)} km`;
+}
+
+/* ==== WAKTU ==== */
+function convertWaktu(){
+    let detik=+inputWaktu.value;
+    if(isNaN(detik)){resultWaktu.innerText="Masukkan angka";return;}
+    let menit=(detik/60).toFixed(2);
+    let jam=(detik/3600).toFixed(2);
+    let hari=(detik/86400).toFixed(2);
+    resultWaktu.innerHTML=`${detik} detik = ${menit} menit = ${jam} jam = ${hari} hari`;
+}
+
+/* ==== KECEPATAN ==== */
+function convertKecepatan(){
+    let val=+inputKecepatan.value;
+    let from=fromSpeed.value, to=toSpeed.value;
+    if(isNaN(val)){resultKecepatan.innerText="Masukkan angka";return;}
+    let ms;
+    if(from==="kmh") ms=val/3.6;
+    else if(from==="ms") ms=val;
+    else if(from==="mph") ms=val*0.44704;
+    let result;
+    if(to==="kmh") result=ms*3.6;
+    else if(to==="ms") result=ms;
+    else if(to==="mph") result=ms/0.44704;
+    resultKecepatan.innerText=`${val} ${from} = ${result.toFixed(2)} ${to}`;
+}
+
+/* ==== DISKON ==== */
+function calcDiskon(){
+    let harga=+hargaAwal.value;
+    let diskon=+diskonPersen.value;
+    if(isNaN(harga)||isNaN(diskon)){resultDiskon.innerText="Masukkan angka";return;}
+    let akhir=harga-(harga*diskon/100);
+    resultDiskon.innerText=`Harga setelah diskon: ${akhir.toFixed(2)}`;
+}
+
+/* ==== CICILAN ==== */
+function calcCicilan(){
+    let pinjaman=+document.getElementById('pinjaman').value;
+    let bunga=+document.getElementById('bunga').value/100;
+    let bulan=+document.getElementById('bulan').value;
+    if(isNaN(pinjaman)||isNaN(bunga)||isNaN(bulan)){resultCicilan.innerText="Masukkan angka";return;}
+    let angsuran=(pinjaman*(1+bunga*bulan))/bulan;
+    resultCicilan.innerText=`Angsuran per bulan: ${angsuran.toFixed(2)}`;
+}
+// Smooth scroll + restart animasi popup+highlight
+document.querySelectorAll('#navbar a, footer a').forEach(link=>{
+  link.addEventListener('click', function(e){
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (!target) return;
+
+    // scroll ke card (center)
+    target.scrollIntoView({behavior:'smooth', block:'center'});
+
+    // restart animasi: hapus -> paksa reflow -> tambahkan
+    target.classList.remove('card-animate');
+    void target.offsetWidth; // paksa reflow agar animation bisa di-restart
+    target.classList.add('card-animate');
+
+    // bersihkan class setelah animasi paling panjang selesai (1.5s)
+    setTimeout(()=> target.classList.remove('card-animate'), 1600);
+  });
+});
+
+
+function toggleMenu() {
+  document.querySelector(".nav-links").classList.toggle("show");
+}
+
+
+
+// Toggle dark mode
+const toggleBtn = document.getElementById('toggleTheme');
+if(localStorage.getItem('theme')==="dark") document.body.classList.add('dark');
+
+toggleBtn.addEventListener('click',()=>{
+  document.body.classList.toggle('dark');
+  if(document.body.classList.contains('dark')){
+    localStorage.setItem('theme','dark');
+    toggleBtn.textContent="Tema Terang";
+  } else {
+    localStorage.setItem('theme','light');
+    toggleBtn.textContent="Tema Gelap";
+  }
+});
+
+function toggleMenu() {
+  document.querySelector(".nav-links").classList.toggle("show");
+}
+
+// Tutup menu setelah klik salah satu link
+document.querySelectorAll('.nav-links a').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelector(".nav-links").classList.remove("show");
+  });
+});
+
+
+</script>
+
+</body>
+</html>
