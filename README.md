@@ -16,4 +16,4 @@ Dibuat untuk membantu menghitung kebutuhan sehari-hari (konversi, perhitungan ce
    git clone https://github.com/username/nama-repo.git
 
 ## 🚀 Demo
-www.s4rt4.github.io/kalkulator
+[www.s4rt4.github.io/kalkulator](https://s4rt4.github.io/kalkulator/index.html)
