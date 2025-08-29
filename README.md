@@ -13,7 +13,7 @@ Dibuat untuk membantu menghitung kebutuhan sehari-hari (konversi, perhitungan ce
 ## 🚀 Cara Menjalankan
 1. Clone repositori ini:
    ```bash
-   git clone https://github.com/username/nama-repo.git
+   git clone https://github.com/s4rt4/kalkulator.git
 
 ## 🚀 Demo
 [www.s4rt4.github.io/kalkulator](https://s4rt4.github.io/kalkulator/index.html)
